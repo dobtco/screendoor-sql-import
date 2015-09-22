@@ -5,6 +5,8 @@ require 'tiny_tds'
 
 Dotenv.load
 
+HTTParty::Basement.default_options.update(verify: false)
+
 # Modify this stuff for your use-case:
 
 client = TinyTds::Client.new(
