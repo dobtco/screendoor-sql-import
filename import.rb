@@ -9,12 +9,12 @@ HTTParty::Basement.default_options.update(verify: false)
 
 # Modify this stuff for your use-case:
 
-client = TinyTds::Client.new(
-  username: ENV['SQL_USER'],
-  password: ENV['SQL_PW'],
-  host: ENV['SQL_HOST'],
-  database: ENV['SQL_DB'],
-)
+# client = TinyTds::Client.new(
+#   username: ENV['SQL_USER'],
+#   password: ENV['SQL_PW'],
+#   host: ENV['SQL_HOST'],
+#   database: ENV['SQL_DB'],
+# )
 
 TABLE_NAME = 'dbo.IFS_SLRData'
 API_BASE = 'https://screendoor.dobt.co'
@@ -24,15 +24,52 @@ PROJECT_ID = 1712
 OPEN_STATUS_NAME = 'Open'
 CLOSED_STATUS_NAME = 'Closed'
 
+def response_text(record, field_id)
+  record['responses'][field_id.to_s]
+end
+
+def response_hash(record, field_id)
+  hash = record['responses'][field_id.to_s]
+
+  if hash.is_a?(Hash)
+    hash
+  else
+    {}
+  end
+end
+
+def transform_phone(text)
+  if text
+    text.scan(/\d/).join
+  end
+end
+
 def transform_record(record)
   {
     'LASTUSER' => 'import',
-    'CONSUMERFNAME' => record['responses']['19580'],
-    'CONSUMERLNAME' => record['responses']['19582']
-    # 'CONSUMERADDRESS' => record['responses']['19583'].try(:[], 'street'),
-    # 'CONSUMERCITY' => record['responses']['19583'].try(:[], 'city'),
-    # 'CONSUMERSTATE' => record['responses']['19583'].try(:[], 'state'),
-    # 'CONSUMERZIP' => record['responses']['19583'].try(:[], 'zip')
+    'CONSUMERFNAME' => response_text(record, 19580),
+    'CONSUMERLNAME' => response_text(record, 19582),
+    'CONSUMERADDRESS' => response_hash(record, 19583)['street'],
+    'CONSUMERCITY' => response_hash(record, 19583)['city'],
+    'CONSUMERSTATE' => response_hash(record, 19583)['state'],
+    'CONSUMERZIP' => response_hash(record, 19583)['zipcode'],
+    'CONSUMERPHONE' => transform_phone(response_text(record, 19588)),
+    'CONSUMEREMAIL' => response_text(record, 19584),
+    'BUSINESSNAME' => response_text(record, 19586),
+    'BUSINESSADDRESS' => response_hash(record, 19587)['street'],
+    'BUSINESSCITY' => response_hash(record, 19587)['city'],
+    'BUSINESSSTATE' => response_hash(record, 19587)['state'],
+    'BUSINESSZIP' => response_hash(record, 19587)['zipcode'],
+    'BUSINESSPHONE' => transform_phone(response_text(record, 19593)),
+    'NAMEOFSCHOOLS' => response_text(record, 19592),
+    'COMPLAINTINFO' => response_text(record, 19627),
+    'TYPEOFLOAN' => response_text(record, 19594),
+    'FEDLOANTYPE' => response_text(record, 19605),
+    'SLACCOUNTNUMBER' => response_text(record, 19606),
+    'FEDLOANDEFAULTYN' => response_text(record, 19614),
+    'WAGEGARNISHEDYN' => response_text(record, 19617),
+    'FEDLOANDEFERNMENT' => response_text(record, 19621),
+    'SEEKINGASSISTANCEYN' => response_text(record, 19626)
   }
 end
 
@@ -101,10 +138,12 @@ end
 records.each do |record|
   response_hash = transform_record(record)
 
-  client.execute %{
-    INSERT INTO #{TABLE_NAME} (LASTMODIFIED,#{response_hash.keys.join(',')})
-    VALUES(GETDATE(),#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
-  }
+  puts response_hash
+
+  # client.execute %{
+  #   INSERT INTO #{TABLE_NAME} (LASTMODIFIED,#{response_hash.keys.join(',')})
+  #   VALUES(GETDATE(),#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
+  # }
 
   mark_as_closed(record['id'])
 end
