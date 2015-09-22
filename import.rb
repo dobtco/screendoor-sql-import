@@ -101,7 +101,7 @@ end
 records.each do |record|
   response_hash = transform_record(record)
 
-  client.query %{
+  client.execute %{
     INSERT INTO #{TABLE_NAME} (LASTMODIFIED,#{response_hash.keys.join(',')})
     VALUES(GETDATE(),#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
   }
