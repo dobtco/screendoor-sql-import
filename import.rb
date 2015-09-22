@@ -20,18 +20,19 @@ TABLE_NAME = 'dbo.IFS_SLRData'
 API_BASE = 'https://screendoor.dobt.co'
 API_KEY = ENV['SCREENDOOR_API_KEY']
 PER_PAGE = 100
-PROJECT_ID = 1721
+PROJECT_ID = 1712
 OPEN_STATUS_NAME = 'Open'
 CLOSED_STATUS_NAME = 'Closed'
 
 def transform_record(record)
   {
+    'LASTUSER' => 'import',
     'CONSUMERFNAME' => record['responses']['19580'],
-    'CONSUMERLNAME' => record['responses']['19582'],
-    'CONSUMERADDRESS' => record['responses']['19583'].try(:[], 'street'),
-    'CONSUMERCITY' => record['responses']['19583'].try(:[], 'city'),
-    'CONSUMERSTATE' => record['responses']['19583'].try(:[], 'state'),
-    'CONSUMERZIP' => record['responses']['19583'].try(:[], 'zip')
+    'CONSUMERLNAME' => record['responses']['19582']
+    # 'CONSUMERADDRESS' => record['responses']['19583'].try(:[], 'street'),
+    # 'CONSUMERCITY' => record['responses']['19583'].try(:[], 'city'),
+    # 'CONSUMERSTATE' => record['responses']['19583'].try(:[], 'state'),
+    # 'CONSUMERZIP' => record['responses']['19583'].try(:[], 'zip')
   }
 end
 
@@ -101,8 +102,8 @@ records.each do |record|
   response_hash = transform_record(record)
 
   client.query %{
-    INSERT INTO #{TABLE_NAME} (#{response_hash.keys.join(',')})
-    VALUES(#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
+    INSERT INTO #{TABLE_NAME} (LASTMODIFIED,#{response_hash.keys.join(',')})
+    VALUES(GETDATE(),#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
   }
 
   mark_as_closed(record['id'])
