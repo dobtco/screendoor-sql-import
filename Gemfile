@@ -2,4 +2,4 @@ source 'https://rubygems.org'
 
 gem 'dotenv'
 gem 'httparty'
-gem 'mysql2'
+gem 'tiny_tds'

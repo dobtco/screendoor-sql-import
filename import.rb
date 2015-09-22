@@ -1,20 +1,20 @@
 require 'dotenv'
 require 'httparty'
 require 'json'
-require 'mysql2'
+require 'tiny_tds'
 
 Dotenv.load
 
 # Modify this stuff for your use-case:
 
-client = Mysql2::Client.new(
-  host: 'localhost',
-  username: ENV['MYSQL_USER'],
-  password: ENV['MYSQL_PW'],
-  database: ENV['MYSQL_DB']
+client = TinyTds::Client.new(
+  username: ENV['SQL_USER'],
+  password: ENV['SQL_PW'],
+  host: ENV['SQL_HOST'],
+  database: ENV['SQL_DB'],
 )
 
-MYSQL_TABLE_NAME = 'dbo.IFS_SLRData'
+TABLE_NAME = 'dbo.IFS_SLRData'
 API_BASE = 'https://screendoor.dobt.co'
 API_KEY = ENV['SCREENDOOR_API_KEY']
 PER_PAGE = 100
@@ -99,7 +99,7 @@ records.each do |record|
   response_hash = transform_record(record)
 
   client.query %{
-    INSERT INTO #{MYSQL_TABLE_NAME} (#{response_hash.keys.join(',')})
+    INSERT INTO #{TABLE_NAME} (#{response_hash.keys.join(',')})
     VALUES(#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
   }
 
