@@ -23,8 +23,12 @@ CLOSED_STATUS_NAME = 'Closed'
 
 def transform_record(record)
   {
-    status: record['status'],
-    approach: record['responses']['19700']
+    'CONSUMERFNAME' => record['responses']['19580'],
+    'CONSUMERLNAME' => record['responses']['19582'],
+    'CONSUMERADDRESS' => record['responses']['19583'].try(:[], 'street'),
+    'CONSUMERCITY' => record['responses']['19583'].try(:[], 'city'),
+    'CONSUMERSTATE' => record['responses']['19583'].try(:[], 'state'),
+    'CONSUMERZIP' => record['responses']['19583'].try(:[], 'zip')
   }
 end
 
