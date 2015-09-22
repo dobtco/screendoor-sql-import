@@ -9,11 +9,12 @@ Dotenv.load
 
 client = Mysql2::Client.new(
   host: 'localhost',
-  username: 'root',
-  database: 'screendoor_mysql_import'
+  username: ENV['MYSQL_USER'],
+  password: ENV['MYSQL_PW'],
+  database: ENV['MYSQL_DB']
 )
 
-MYSQL_TABLE_NAME = 'responses'
+MYSQL_TABLE_NAME = 'dbo.IFS_SLRData'
 API_BASE = 'https://screendoor.dobt.co'
 API_KEY = ENV['SCREENDOOR_API_KEY']
 PER_PAGE = 100
