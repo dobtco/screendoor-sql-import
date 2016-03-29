@@ -9,12 +9,12 @@ HTTParty::Basement.default_options.update(verify: false)
 
 # Modify this stuff for your use-case:
 
-# client = TinyTds::Client.new(
-#   username: ENV['SQL_USER'],
-#   password: ENV['SQL_PW'],
-#   host: ENV['SQL_HOST'],
-#   database: ENV['SQL_DB'],
-# )
+client = TinyTds::Client.new(
+  username: ENV['SQL_USER'],
+  password: ENV['SQL_PW'],
+  host: ENV['SQL_HOST'],
+  database: ENV['SQL_DB'],
+)
 
 TABLE_NAME = 'dbo.IFS_SLRData'
 API_BASE = 'https://screendoor.dobt.co'
@@ -140,10 +140,10 @@ records.each do |record|
 
   puts response_hash
 
-  # client.execute %{
-  #   INSERT INTO #{TABLE_NAME} (LASTMODIFIED,#{response_hash.keys.join(',')})
-  #   VALUES(GETDATE(),#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
-  # }
+  client.execute %{
+    INSERT INTO #{TABLE_NAME} (LASTMODIFIED,#{response_hash.keys.join(',')})
+    VALUES(GETDATE(),#{response_hash.values.map { |v| "'" + client.escape(v) + "'" }.join(',')})
+  }
 
   mark_as_closed(record['id'])
 end
